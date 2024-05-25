@@ -51,6 +51,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "example-matrix"
+version = "0.1.0"
+dependencies = [
+ "polkavm-derive",
+ "simplealloc",
+]
+
+[[package]]
 name = "helper-macros"
 version = "0.1.0"
 dependencies = [

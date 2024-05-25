@@ -22,3 +22,4 @@ function build_example () {
 }
 
 build_example "example-hello-world"
+build_example "example-matrix"
