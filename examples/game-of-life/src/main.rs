@@ -1,6 +1,5 @@
 use polkavm::{CallArgs, Config, Engine, Linker, Module, ProgramBlob, StateArgs};
 use std::sync::{Arc, Mutex};
-use std::{thread, time::Duration};
 
 const WIDTH: usize = 80;
 const HEIGHT: usize = 24;
@@ -73,6 +72,5 @@ fn main() {
         let call_args = CallArgs::new(&mut user_data, export_index);
         instance.call(StateArgs::new(), call_args).expect("Failed to call instance");
         frame_buffer.render();
-        thread::sleep(Duration::from_secs(1));
     }
 }
