@@ -1,0 +1,8 @@
+[package]
+name = "example-game-of-life"
+version = "0.1.1"
+edition = "2021"
+publish = false
+
+[dependencies]
+polkavm-derive = { path = "../../crates/polkavm-derive" }

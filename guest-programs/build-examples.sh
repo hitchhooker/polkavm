@@ -23,3 +23,4 @@ function build_example () {
 
 build_example "example-hello-world"
 build_example "example-matrix"
+build_example "example-game-of-life"

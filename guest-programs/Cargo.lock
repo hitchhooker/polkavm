@@ -44,6 +44,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "example-game-of-life"
+version = "0.1.1"
+dependencies = [
+ "polkavm-derive",
+]
+
+[[package]]
 name = "example-hello-world"
 version = "0.1.0"
 dependencies = [
