@@ -7,4 +7,3 @@ publish = false
 [dependencies]
 env_logger = { version = "0.11.0", default-features = false }
 polkavm = { path = "../../crates/polkavm" }
-minifb = "0.27.0"
