@@ -1,116 +1,78 @@
 use polkavm::{CallArgs, Config, Engine, Linker, Module, ProgramBlob, StateArgs};
 use std::sync::{Arc, Mutex};
-use std::os::raw::c_char;
+use std::{thread, time::Duration};
 
 const WIDTH: usize = 80;
 const HEIGHT: usize = 24;
 
 #[derive(Clone)]
-struct FrameBuffer {
-    buffer: Arc<Mutex<[[bool; WIDTH]; HEIGHT]>>,
-}
+struct FrameBuffer(Arc<Mutex<[[bool; WIDTH]; HEIGHT]>>);
 
 impl FrameBuffer {
     fn new() -> Self {
-        FrameBuffer {
-            buffer: Arc::new(Mutex::new([[false; WIDTH]; HEIGHT])),
-        }
+        Self(Arc::new(Mutex::new([[false; WIDTH]; HEIGHT])))
     }
 
     fn clear(&self) {
-        let mut buffer = self.buffer.lock().unwrap();
-        for y in 0..HEIGHT {
-            for x in 0..WIDTH {
-                buffer[y][x] = false;
-            }
-        }
+        self.0.lock().unwrap().iter_mut().for_each(|row| row.fill(false));
     }
 
     fn render(&self) {
-        let buffer = self.buffer.lock().unwrap();
-        for y in 0..HEIGHT {
-            for x in 0..WIDTH {
-                let symbol = if buffer[y][x] { 'x' } else { ' ' };
-                print!("{}", symbol);
+        print!("\x1B[2J\x1B[H");
+        let buffer = self.0.lock().unwrap();
+        for row in buffer.iter() {
+            for &cell in row.iter() {
+                print!("{}", if cell { 'x' } else { ' ' });
             }
             println!();
         }
-        println!();
     }
 
-    fn set_pixel(&self, x: u32, y: u32, value: bool) -> u32 {
+    fn set_pixel(&self, x: u32, y: u32, value: bool) {
         if x < WIDTH as u32 && y < HEIGHT as u32 {
-            let mut buffer = self.buffer.lock().unwrap();
-            buffer[y as usize][x as usize] = value;
-        } else {
-            println!("Invalid coordinates: ({}, {})", x, y);
+            self.0.lock().unwrap()[y as usize][x as usize] = value;
         }
-        0
     }
-}
-
-fn log_message(ptr: *const c_char, len: u32) {
-    if ptr.is_null() || len == 0 {
-        println!("Guest log: (null or empty message)");
-        return;
-    }
-
-    let slice = unsafe { std::slice::from_raw_parts(ptr as *const u8, len as usize) };
-    let message = String::from_utf8_lossy(slice);
-    println!("Guest log: {}", message);
 }
 
 fn main() {
-    env_logger::init();
-
     let frame_buffer = FrameBuffer::new();
-
     let raw_blob = include_bytes!("../../../guest-programs/output/example-game-of-life.polkavm");
-    let blob = ProgramBlob::parse(raw_blob[..].into()).unwrap();
+    let blob = ProgramBlob::parse(raw_blob[..].into()).expect("Failed to parse blob");
 
-    let config = Config::from_env().unwrap();
-    let engine = Engine::new(&config).unwrap();
-    let module = Module::from_blob(&engine, &Default::default(), blob).unwrap();
+    let config = Config::from_env().expect("Failed to get config");
+    let engine = Engine::new(&config).expect("Failed to create engine");
+    let module = Module::from_blob(&engine, &Default::default(), blob).expect("Failed to create module");
     let mut linker = Linker::new(&engine);
 
-    // Define host functions
-    linker.func_wrap("set_pixel", {
-        let frame_buffer = frame_buffer.clone();
-        move |x: u32, y: u32, value: u32| -> u32 {
-            let value = value != 0;
-            frame_buffer.set_pixel(x, y, value)
-        }
-    }).unwrap();
-
-    linker.func_wrap("clear_screen", {
-        let frame_buffer = frame_buffer.clone();
-        move || -> u32 {
-            frame_buffer.clear();
-            0
-        }
-    }).unwrap();
-
-    linker.func_wrap("render_screen", {
-        let frame_buffer = frame_buffer.clone();
-        move || -> u32 {
-            frame_buffer.render();
-            0
-        }
-    }).unwrap();
-
-    linker.func_wrap("log_message", move |ptr: u32, len: u32| {
-        let ptr = ptr as *const c_char;
-        log_message(ptr, len);
+    let fb = frame_buffer.clone();
+    linker.func_wrap("set_pixel", move |x: u32, y: u32, value: u32| {
+        fb.set_pixel(x, y, value != 0);
         0
-    }).unwrap();
+    }).expect("Failed to wrap set_pixel");
 
-    // Link the host functions with the module
-    let instance_pre = linker.instantiate_pre(&module).unwrap();
-    let instance = instance_pre.instantiate().unwrap();
+    let fb = frame_buffer.clone();
+    linker.func_wrap("clear_screen", move || {
+        fb.clear();
+        0
+    }).expect("Failed to wrap clear_screen");
 
-    // Call the guest function to start the Game of Life
-    let export_index = instance.module().lookup_export("start_game_of_life").unwrap();
+    let fb = frame_buffer.clone();
+    linker.func_wrap("render_screen", move || {
+        fb.render();
+        0
+    }).expect("Failed to wrap render_screen");
+
+    let instance_pre = linker.instantiate_pre(&module).expect("Failed to instantiate pre");
+    let instance = instance_pre.instantiate().expect("Failed to instantiate");
+
+    let export_index = instance.module().lookup_export("start_game_of_life").expect("Failed to lookup export");
     let mut user_data = ();
-    let call_args = CallArgs::new(&mut user_data, export_index);
-    instance.call(StateArgs::new(), call_args).unwrap();
+
+    loop {
+        let call_args = CallArgs::new(&mut user_data, export_index);
+        instance.call(StateArgs::new(), call_args).expect("Failed to call instance");
+        frame_buffer.render();
+        thread::sleep(Duration::from_secs(1));
+    }
 }
