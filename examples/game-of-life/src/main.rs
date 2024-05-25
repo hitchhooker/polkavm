@@ -1,6 +1,5 @@
 use polkavm::{CallArgs, Config, Engine, Linker, Module, ProgramBlob, StateArgs};
 use std::sync::{Arc, Mutex};
-use std::time::Duration;
 use std::os::raw::c_char;
 
 const WIDTH: usize = 80;
@@ -114,10 +113,4 @@ fn main() {
     let mut user_data = ();
     let call_args = CallArgs::new(&mut user_data, export_index);
     instance.call(StateArgs::new(), call_args).unwrap();
-    println!("Game of Life started");
-
-    // Rendering loop
-    loop {
-        std::thread::sleep(Duration::from_millis(100)); // refresh rate
-    }
 }
