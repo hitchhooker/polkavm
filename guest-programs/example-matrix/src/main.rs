@@ -31,26 +31,38 @@ extern "C" fn start_matrix_effect() {
 }
 
 fn clear() {
-    unsafe { clear_screen(); }
+    unsafe {
+        clear_screen();
+    }
 }
 
 fn render() {
-    unsafe { render_screen(); }
+    unsafe {
+        render_screen();
+    }
 }
 
 fn update_drops() {
     for x in 0..WIDTH {
         if unsafe { DROPS[x] } < 0 && random_byte() % 10 < 1 {
-            unsafe { DROPS[x] = 0; }
+            unsafe {
+                DROPS[x] = 0;
+            }
         }
         if unsafe { DROPS[x] } >= 0 {
             if unsafe { DROPS[x] as usize } >= HEIGHT {
-                unsafe { DROPS[x] = -1; }
+                unsafe {
+                    DROPS[x] = -1;
+                }
             } else {
                 let y = unsafe { DROPS[x] } as u32;
                 let c = (random_byte() % 94 + 33) as u32;
-                unsafe { render_char(x as u32, y, c); }
-                unsafe { DROPS[x] += 1; }
+                unsafe {
+                    render_char(x as u32, y, c);
+                }
+                unsafe {
+                    DROPS[x] += 1;
+                }
             }
         }
     }

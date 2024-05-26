@@ -45,27 +45,36 @@ fn main() {
     let mut linker = Linker::new(&engine);
 
     let fb = frame_buffer.clone();
-    linker.func_wrap("set_pixel", move |x: u32, y: u32, value: u32| {
-        fb.set_pixel(x, y, value != 0);
-        0
-    }).expect("Failed to wrap set_pixel");
+    linker
+        .func_wrap("set_pixel", move |x: u32, y: u32, value: u32| {
+            fb.set_pixel(x, y, value != 0);
+            0
+        })
+        .expect("Failed to wrap set_pixel");
 
     let fb = frame_buffer.clone();
-    linker.func_wrap("clear_screen", move || {
-        fb.clear();
-        0
-    }).expect("Failed to wrap clear_screen");
+    linker
+        .func_wrap("clear_screen", move || {
+            fb.clear();
+            0
+        })
+        .expect("Failed to wrap clear_screen");
 
     let fb = frame_buffer.clone();
-    linker.func_wrap("render_screen", move || {
-        fb.render();
-        0
-    }).expect("Failed to wrap render_screen");
+    linker
+        .func_wrap("render_screen", move || {
+            fb.render();
+            0
+        })
+        .expect("Failed to wrap render_screen");
 
     let instance_pre = linker.instantiate_pre(&module).expect("Failed to instantiate pre");
     let instance = instance_pre.instantiate().expect("Failed to instantiate");
 
-    let export_index = instance.module().lookup_export("start_game_of_life").expect("Failed to lookup export");
+    let export_index = instance
+        .module()
+        .lookup_export("start_game_of_life")
+        .expect("Failed to lookup export");
     let mut user_data = ();
 
     loop {

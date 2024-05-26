@@ -34,16 +34,45 @@ extern "C" fn start_game_of_life() {
 // Encoded initial patterns
 const PATTERNS: &[(usize, usize)] = &[
     // Top left block
-    (5, 1), (5, 2), (6, 1), (6, 2),
+    (5, 1),
+    (5, 2),
+    (6, 1),
+    (6, 2),
     // Left glider
-    (3, 13), (3, 14), (4, 12), (4, 16), (5, 11), (5, 17),
-    (6, 11), (6, 15), (6, 17), (6, 18), (7, 11), (7, 17),
-    (8, 12), (8, 16), (9, 13), (9, 14),
+    (3, 13),
+    (3, 14),
+    (4, 12),
+    (4, 16),
+    (5, 11),
+    (5, 17),
+    (6, 11),
+    (6, 15),
+    (6, 17),
+    (6, 18),
+    (7, 11),
+    (7, 17),
+    (8, 12),
+    (8, 16),
+    (9, 13),
+    (9, 14),
     // Right glider
-    (1, 25), (2, 23), (2, 25), (3, 21), (3, 22), (4, 21),
-    (4, 22), (5, 21), (5, 22), (6, 23), (6, 25), (7, 25),
+    (1, 25),
+    (2, 23),
+    (2, 25),
+    (3, 21),
+    (3, 22),
+    (4, 21),
+    (4, 22),
+    (5, 21),
+    (5, 22),
+    (6, 23),
+    (6, 25),
+    (7, 25),
     // Right block
-    (3, 35), (3, 36), (4, 35), (4, 36),
+    (3, 35),
+    (3, 36),
+    (4, 35),
+    (4, 36),
 ];
 
 fn initialize_grid() {
@@ -55,14 +84,20 @@ fn initialize_grid() {
 }
 
 fn clear_and_render() {
-    unsafe { clear_screen(); }
+    unsafe {
+        clear_screen();
+    }
     for y in 0..HEIGHT {
         for x in 0..WIDTH {
             let value = unsafe { GRID[y][x] };
-            unsafe { set_pixel(x as u32, y as u32, value as u32); }
+            unsafe {
+                set_pixel(x as u32, y as u32, value as u32);
+            }
         }
     }
-    unsafe { render_screen(); }
+    unsafe {
+        render_screen();
+    }
 }
 
 fn update_grid() {

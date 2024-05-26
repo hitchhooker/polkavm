@@ -29,7 +29,7 @@ impl FrameBuffer {
 
     fn render(&self) {
         let buffer = self.buffer.lock().unwrap();
-        print!("\x1B[2J\x1B[H");  // Clear the screen and move cursor to top-left corner
+        print!("\x1B[2J\x1B[H"); // Clear the screen and move cursor to top-left corner
         for y in 0..HEIGHT {
             for x in 0..WIDTH {
                 print!("{}", buffer[y][x]);
@@ -62,21 +62,27 @@ fn main() {
 
     // Define host functions
     let frame_buffer_clone = frame_buffer.clone();
-    linker.func_wrap("render_char", move |x: u32, y: u32, c: u32| -> u32 {
-        frame_buffer_clone.render_char(x, y, c)
-    }).unwrap();
+    linker
+        .func_wrap("render_char", move |x: u32, y: u32, c: u32| -> u32 {
+            frame_buffer_clone.render_char(x, y, c)
+        })
+        .unwrap();
 
     let frame_buffer_clone = frame_buffer.clone();
-    linker.func_wrap("clear_screen", move || -> u32 {
-        frame_buffer_clone.clear();
-        0
-    }).unwrap();
+    linker
+        .func_wrap("clear_screen", move || -> u32 {
+            frame_buffer_clone.clear();
+            0
+        })
+        .unwrap();
 
     let frame_buffer_clone = frame_buffer.clone();
-    linker.func_wrap("render_screen", move || -> u32 {
-        frame_buffer_clone.render();
-        0
-    }).unwrap();
+    linker
+        .func_wrap("render_screen", move || -> u32 {
+            frame_buffer_clone.render();
+            0
+        })
+        .unwrap();
 
     // Link the host functions with the module
     let instance_pre = linker.instantiate_pre(&module).unwrap();
@@ -95,4 +101,3 @@ fn main() {
     let call_args = CallArgs::new(&mut user_data, export_index);
     instance.call(StateArgs::new(), call_args).unwrap();
 }
-
