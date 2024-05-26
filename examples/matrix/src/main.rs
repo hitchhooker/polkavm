@@ -97,6 +97,7 @@ fn main() {
 
     // Call the guest function to trigger the matrix effect
     let export_index = instance.module().lookup_export("start_matrix_effect").unwrap();
+    #[allow(clippy::let_unit_value)]
     let mut user_data = ();
     let call_args = CallArgs::new(&mut user_data, export_index);
     instance.call(StateArgs::new(), call_args).unwrap();

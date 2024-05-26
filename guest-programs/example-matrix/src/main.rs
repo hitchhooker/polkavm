@@ -26,7 +26,7 @@ extern "C" fn start_matrix_effect() {
         clear();
         update_drops();
         render();
-        delay(10000);
+        delay(10000); // Adjust delay value as needed
     }
 }
 
@@ -43,34 +43,33 @@ fn render() {
 }
 
 fn update_drops() {
-    for x in 0..WIDTH {
-        if unsafe { DROPS[x] } < 0 && random_byte() % 10 < 1 {
-            unsafe {
-                DROPS[x] = 0;
+    unsafe {
+        for (x, drop) in DROPS.iter_mut().enumerate().take(WIDTH) {
+            if *drop < 0 && random_byte() % 10 < 1 {
+                *drop = 0;
             }
-        }
-        if unsafe { DROPS[x] } >= 0 {
-            if unsafe { DROPS[x] as usize } >= HEIGHT {
-                unsafe {
-                    DROPS[x] = -1;
-                }
-            } else {
-                let y = unsafe { DROPS[x] } as u32;
-                let c = (random_byte() % 94 + 33) as u32;
-                unsafe {
-                    render_char(x as u32, y, c);
-                }
-                unsafe {
-                    DROPS[x] += 1;
-                }
+
+            if *drop < 0 {
+                continue;
             }
+
+            if *drop as usize >= HEIGHT {
+                *drop = -1;
+                continue;
+            }
+
+            let y = *drop as u32;
+            let c = (random_byte() % 94 + 33) as u32;
+            render_char(x as u32, y, c);
+            *drop += 1;
         }
     }
 }
 
 fn delay(count: u32) {
     for _ in 0..count {
-        // Simple delay loop
+        // Simple delay loop to create a pause in execution
+        core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
     }
 }
 

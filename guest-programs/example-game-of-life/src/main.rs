@@ -87,11 +87,10 @@ fn clear_and_render() {
     unsafe {
         clear_screen();
     }
-    for y in 0..HEIGHT {
-        for x in 0..WIDTH {
-            let value = unsafe { GRID[y][x] };
+    for (y, row) in unsafe { GRID.iter() }.enumerate().take(HEIGHT) {
+        for (x, &cell) in row.iter().enumerate().take(WIDTH) {
             unsafe {
-                set_pixel(x as u32, y as u32, value as u32);
+                set_pixel(x as u32, y as u32, cell as u32);
             }
         }
     }
@@ -101,14 +100,11 @@ fn clear_and_render() {
 }
 
 fn update_grid() {
-    for y in 0..HEIGHT {
-        for x in 0..WIDTH {
+    for (y, row) in unsafe { GRID.iter() }.enumerate().take(HEIGHT) {
+        for (x, &cell) in row.iter().enumerate().take(WIDTH) {
             let live_neighbors = count_live_neighbors(x, y);
             unsafe {
-                NEW_GRID[y][x] = match (GRID[y][x], live_neighbors) {
-                    (true, 2) | (_, 3) => true,
-                    _ => false,
-                };
+                NEW_GRID[y][x] = matches!((cell, live_neighbors), (true, 2) | (_, 3));
             }
         }
     }

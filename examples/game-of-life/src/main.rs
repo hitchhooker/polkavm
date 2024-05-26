@@ -75,6 +75,8 @@ fn main() {
         .module()
         .lookup_export("start_game_of_life")
         .expect("Failed to lookup export");
+
+    #[allow(clippy::let_unit_value)]
     let mut user_data = ();
 
     loop {
